@@ -16,6 +16,8 @@ router.get('/preferences',authmiddleware,getuserpreferences)
 
 router.put('/preferences', authmiddleware, userpreferencesupdate)
 
-router.get('/news', authmiddleware, getNews);
+// router.get('/news', authmiddleware, getNews);
+
+router.get('/get-news', getNews);
 
 module.exports=router

@@ -12,6 +12,7 @@ app.use(['/','/home'],userroute)
 app.use(['/register','/users/signup'],userroute)
 app.use(['/login','/users/login'],userroute)
 app.use('/users',userroute)
+app.use('/v1',userroute)
 
 
 module.exports = app;

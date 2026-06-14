@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const users=require('../models/usermodel')
-// const JWTsecretkey= 'Hello12345'
+const axios = require('axios');
 require('dotenv').config(); 
 const JWTSecretkey=process.env.JWTSecretkey;
 const JWTExpirationTime=process.env.JWTExpirationTime;
@@ -126,11 +126,43 @@ async function userpreferencesupdate(req, res) {
     });
 };
 
-async function getNews(req,res) {
+// async function getNews(req,res) {
     
+//         return res.status(200).json({
+//             news: ['']
+//         })
+// }
+
+
+
+async function getNews(req,res){
+    try
+    { 
+        const user= users[0]
+        const query= user.preferences.join(" OR ")
+
+        const response = await axios.get(
+        `https://gnews.io/api/v4/search?q=${query}&apikey=${process.env.NEWS_API_KEY}` );
+
+        // const response = await axios.get(
+        // `https://gnews.io/api/v4/search?q=technology&apikey=${process.env.NEWS_API_KEY}` );
+
+        // console.log(response.data);
         return res.status(200).json({
-            news: ['']
+            news: response.data.articles
+        });
+
+    }
+    catch(error)
+    {
+        console.log(error.message);
+
+        return res.status(500).json
+        ({
+        message: "Error fetching news"
         })
+
+}
 }
 
 module.exports={ userSignup, userLogin, getuserpreferences,userpreferencesupdate,getNews}
