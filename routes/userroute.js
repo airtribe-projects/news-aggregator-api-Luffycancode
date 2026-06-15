@@ -20,4 +20,5 @@ router.put('/preferences', authmiddleware, userpreferencesupdate)
 
 router.get('/get-news', getNews);
 
+
 module.exports=router

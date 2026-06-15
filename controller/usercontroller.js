@@ -1,10 +1,10 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const users=require('../models/usermodel')
 const axios = require('axios');
 require('dotenv').config(); 
 const JWTSecretkey=process.env.JWTSecretkey;
 const JWTExpirationTime=process.env.JWTExpirationTime;
+const User = require('../models/User');
 
 
 async function userSignup(req,res)
@@ -18,8 +18,9 @@ try
             return res.status(400).json({ 
             message: "Missing fields. Name, password, and email are required."})
         }
-    const emailcheck= users.find(user=> user.email===email)
-    if(emailcheck)
+
+    const emailcheck= await User.findOne({email})
+        if(emailcheck)
         {
             return res.status(400).json({ 
             message: "An account with this email already exists."})
@@ -35,7 +36,7 @@ try
         preferences:preferences
     }
 
-    users.push(newuser)
+    await User.create(newuser);
 
 
     return res.status(200).json({
@@ -53,12 +54,13 @@ try
 }
 
 
+
 async function userLogin(req,res)
 {
 try
 {
     const {password,email}=req.body
-    const Credentialscheck= users.find(user=> user.email===email)
+    const Credentialscheck= await User.findOne({email})
     if(!Credentialscheck)
     {
         return res.status(401).json({
@@ -82,9 +84,6 @@ try
 
 //Creatiion of JWT Token
     const token= jwt.sign(payload,JWTSecretkey,{expiresIn: JWTExpirationTime})
-    
-
-
     return res.status(200).json({
     token
 })
@@ -101,16 +100,17 @@ try
 
 async function getuserpreferences(req,res) {
 
-    const user= users.find(user=>user.preferences)
+    const user= await User.findOne()
     
     return res.status(200).json({
         preferences:user.preferences
 
     })
 
-
-
 }
+
+
+
 
 async function userpreferencesupdate(req, res) {
 
@@ -118,36 +118,25 @@ async function userpreferencesupdate(req, res) {
     const payload=data.preferences
 
 
-    const user= users.find(user=>user.preferences)
+    const user= await User.findOne()
     user.preferences=payload
-
+    await user.save();
     res.status(200).json({
         message: 'Preferences updated'
     });
 };
-
-// async function getNews(req,res) {
-    
-//         return res.status(200).json({
-//             news: ['']
-//         })
-// }
 
 
 
 async function getNews(req,res){
     try
     { 
-        const user= users[0]
+        const user= await User.findOne()
         const query= user.preferences.join(" OR ")
 
         const response = await axios.get(
         `https://gnews.io/api/v4/search?q=${query}&apikey=${process.env.NEWS_API_KEY}` );
 
-        // const response = await axios.get(
-        // `https://gnews.io/api/v4/search?q=technology&apikey=${process.env.NEWS_API_KEY}` );
-
-        // console.log(response.data);
         return res.status(200).json({
             news: response.data.articles
         });
@@ -164,5 +153,7 @@ async function getNews(req,res){
 
 }
 }
+
+
 
 module.exports={ userSignup, userLogin, getuserpreferences,userpreferencesupdate,getNews}
